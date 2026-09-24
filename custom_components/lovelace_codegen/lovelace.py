@@ -37,12 +37,24 @@ class View(Renderable):
         panel: bool = True,
         path: str | None = None,
         icon: str | None = None,
+        subview: bool = False,
+        back_path: str | None = None,
     ) -> None:
+        """A view, or with `subview` one left out of the tab bar.
+
+        A subview is reached only by navigating to its `path`, and shows a back
+        arrow in place of the tabs. The arrow goes back in browser history
+        unless `back_path` names where it goes.
+        """
+        if back_path is not None and not subview:
+            raise ValueError("back_path only applies to a subview")
         self.title = title
         self.cards = cards
         self.panel = panel
         self.path = path
         self.icon = icon
+        self.subview = subview
+        self.back_path = back_path
 
     def render(self) -> DBT:
         config: dict[str, Any] = {
@@ -54,6 +66,10 @@ class View(Renderable):
             config["path"] = self.path
         if self.icon is not None:
             config["icon"] = self.icon
+        if self.subview:
+            config["subview"] = True
+        if self.back_path is not None:
+            config["back_path"] = self.back_path
         return config
 
 
@@ -77,6 +93,72 @@ class HorizontalStackCard(Renderable):
             "type": "horizontal-stack",
             "cards": [card.render() for card in self.cards],
         }
+
+
+class GridCard(Renderable):
+    """Cards laid out `columns` across, in as many rows as they need."""
+
+    def __init__(
+        self,
+        cards: Sequence[Renderable],
+        columns: int = 3,
+        square: bool = False,
+        title: str | None = None,
+    ) -> None:
+        self.cards = cards
+        self.columns = columns
+        self.square = square
+        self.title = title
+
+    def render(self) -> DBT:
+        config: dict[str, Any] = {
+            "type": "grid",
+            "columns": self.columns,
+            "square": self.square,
+            "cards": [card.render() for card in self.cards],
+        }
+        if self.title is not None:
+            config["title"] = self.title
+        return config
+
+
+def navigate(path: str) -> dict[str, str]:
+    """A tap action that opens `path`, such as a subview's."""
+    return {"action": "navigate", "navigation_path": path}
+
+
+class TileCard(Renderable):
+    """One entity as a tile: its icon, name and state.
+
+    With no `icon`, the tile shows the entity's own, so an entity whose icon
+    follows its state shows that state at a glance.
+    """
+
+    def __init__(
+        self,
+        entity: str,
+        name: str | None = None,
+        icon: str | None = None,
+        vertical: bool = False,
+        tap_action: Mapping[str, Any] | None = None,
+    ) -> None:
+        self.entity = entity
+        self.name = name
+        self.icon = icon
+        self.vertical = vertical
+        self.tap_action = tap_action
+
+    def render(self) -> DBT:
+        config: dict[str, Any] = {"type": "tile", ENTITY: self.entity}
+        if self.name is not None:
+            config[NAME] = self.name
+        if self.icon is not None:
+            config[ICON] = self.icon
+        if self.vertical:
+            config["vertical"] = True
+        if self.tap_action is not None:
+            config["tap_action"] = dict(self.tap_action)
+        return config
 
 
 class EntitiesCard(Renderable):

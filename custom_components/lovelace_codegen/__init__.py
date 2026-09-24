@@ -32,14 +32,17 @@ from .lovelace import (
     Dashboard,
     EntitiesCard,
     GeneratedDashboard,
+    GridCard,
     HistoryGraphCard,
     HorizontalStackCard,
     ManualLovelaceYAML,
     MarkdownCard,
     Renderable,
+    TileCard,
     VerticalStackCard,
     View,
     divider,
+    navigate,
 )
 
 if TYPE_CHECKING:
@@ -57,15 +60,18 @@ __all__ = [
     "Fragment",
     "FragmentError",
     "GeneratedDashboard",
+    "GridCard",
     "HistoryGraphCard",
     "HorizontalStackCard",
     "ManualLovelaceYAML",
     "MarkdownCard",
     "Params",
     "Renderable",
+    "TileCard",
     "VerticalStackCard",
     "View",
     "divider",
+    "navigate",
     "register_fragments",
 ]
 

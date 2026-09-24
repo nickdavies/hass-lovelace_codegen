@@ -1,7 +1,7 @@
 {
   "domain": "lovelace_codegen",
   "name": "Lovelace codegen",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "integration_type": "helper",
   "documentation": "https://github.com/nickdavies/hass-lovelace_codegen",
   "codeowners": ["@nickdavies"],
