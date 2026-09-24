@@ -2,18 +2,23 @@
 
 from __future__ import annotations
 
+import pytest
+
 from custom_components.lovelace_codegen import (
     ENTITY,
     ICON,
     NAME,
     Dashboard,
     EntitiesCard,
+    GridCard,
     HistoryGraphCard,
     HorizontalStackCard,
     MarkdownCard,
+    TileCard,
     VerticalStackCard,
     View,
     divider,
+    navigate,
 )
 
 
@@ -81,6 +86,57 @@ class TestView:
         assert rendered["panel"] is False
         assert rendered["path"] == "p"
         assert rendered[ICON] == "mdi:x"
+
+    def test_a_subview_is_marked_and_can_name_its_back_path(self) -> None:
+        rendered = View("T", [], path="p", subview=True, back_path="/d/main").render()
+        assert rendered["subview"] is True
+        assert rendered["back_path"] == "/d/main"
+
+    def test_a_plain_view_says_nothing_about_subviews(self) -> None:
+        rendered = View("T", []).render()
+        assert "subview" not in rendered
+        assert "back_path" not in rendered
+
+    def test_back_path_needs_a_subview(self) -> None:
+        with pytest.raises(ValueError, match="subview"):
+            View("T", [], back_path="/d/main")
+
+
+class TestGridCard:
+    def test_renders_its_cards_in_columns(self) -> None:
+        inner = MarkdownCard("x")
+        assert GridCard([inner, inner], columns=4).render() == {
+            "type": "grid",
+            "columns": 4,
+            "square": False,
+            "cards": [inner.render(), inner.render()],
+        }
+
+    def test_title_only_when_given(self) -> None:
+        assert GridCard([], title="T").render()["title"] == "T"
+        assert "title" not in GridCard([]).render()
+
+
+class TestTileCard:
+    def test_bare_tile_is_just_the_entity(self) -> None:
+        assert TileCard("sensor.a").render() == {"type": "tile", ENTITY: "sensor.a"}
+
+    def test_every_option(self) -> None:
+        card = TileCard(
+            "sensor.a",
+            name="A",
+            icon="mdi:x",
+            vertical=True,
+            tap_action=navigate("/d/a"),
+        )
+        assert card.render() == {
+            "type": "tile",
+            ENTITY: "sensor.a",
+            NAME: "A",
+            ICON: "mdi:x",
+            "vertical": True,
+            "tap_action": {"action": "navigate", "navigation_path": "/d/a"},
+        }
 
 
 class TestDashboard:
