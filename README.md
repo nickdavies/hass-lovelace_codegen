@@ -50,7 +50,7 @@ hand-written dashboard too, register the function that builds it as a
 fragment:
 
 ```python
-import voluptuous as vol
+import probatio
 
 from custom_components.lovelace_codegen import (
     EntitiesCard, Fragment, FragmentError, Params, register_fragments,
@@ -69,7 +69,7 @@ register_fragments(hass, DOMAIN, [
         "killswitches",
         killswitches,
         description="Motion killswitch per light",
-        schema=vol.Schema({vol.Required("owner"): str}),
+        schema=probatio.Schema({probatio.Required("owner"): str}),
     ),
 ])
 ```

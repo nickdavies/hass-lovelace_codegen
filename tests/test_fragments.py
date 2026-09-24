@@ -10,7 +10,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 import pytest
-import voluptuous as vol
+import probatio
 from homeassistant.core import HomeAssistant
 
 from custom_components.lovelace_codegen import (
@@ -44,7 +44,7 @@ KILLSWITCHES = Fragment(
     "killswitches",
     killswitches,
     description="Motion killswitch per light",
-    schema=vol.Schema({vol.Optional("light"): str}),
+    schema=probatio.Schema({probatio.Optional("light"): str}),
 )
 HELLO = Fragment("hello", lambda params: MarkdownCard("hello"))
 
@@ -59,11 +59,11 @@ class TestFragment:
         ]
 
     def test_default_schema_rejects_any_param(self) -> None:
-        with pytest.raises(vol.Invalid):
+        with pytest.raises(probatio.Invalid):
             HELLO.render({"typo": 1})
 
     def test_schema_rejects_unknown_param(self) -> None:
-        with pytest.raises(vol.Invalid):
+        with pytest.raises(probatio.Invalid):
             KILLSWITCHES.render({"lihgt": "study"})
 
     def test_builder_rejects_unknown_value(self) -> None:
@@ -81,7 +81,9 @@ class TestFragment:
         fragment = Fragment(
             "x",
             lambda params: MarkdownCard(""),
-            schema=vol.Schema({vol.Required("light"): vol.In(["b", "a"])}),
+            schema=probatio.Schema(
+                {probatio.Required("light"): probatio.In(["b", "a"])}
+            ),
         )
         assert fragment.describe()["params"] == [
             {"name": "light", "required": True, "type": "enum", "options": ["a", "b"]}

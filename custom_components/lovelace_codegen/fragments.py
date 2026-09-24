@@ -26,7 +26,7 @@ from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
-import voluptuous as vol
+import probatio
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.util.hass_dict import HassKey
@@ -58,12 +58,12 @@ class Fragment:
     name: str
     build: Callable[[Params], Renderable]
     description: str = ""
-    schema: vol.Schema = field(default_factory=lambda: vol.Schema({}))
+    schema: probatio.Schema = field(default_factory=lambda: probatio.Schema({}))
 
     def render(self, params: Params | None = None) -> DBT:
         """Validate `params` and build the card.
 
-        Raises `vol.Invalid` for parameters the schema rejects and
+        Raises `probatio.Invalid` for parameters the schema rejects and
         `FragmentError` for ones the builder does.
         """
         return self.build(self.schema(dict(params or {}))).render()
@@ -86,11 +86,11 @@ def _describe_param(key: Any, validator: Any) -> dict[str, Any]:
     """
     described: dict[str, Any] = {
         "name": str(key),
-        "required": isinstance(key, vol.Required),
+        "required": isinstance(key, probatio.Required),
     }
     if isinstance(validator, type):
         described["type"] = validator.__name__
-    elif isinstance(validator, vol.In):
+    elif isinstance(validator, probatio.In):
         described["type"] = "enum"
         described["options"] = sorted(validator.container)
     else:
@@ -153,10 +153,10 @@ def async_setup_fragments(hass: HomeAssistant) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): f"{DOMAIN}/fragment",
-        vol.Required("source"): str,
-        vol.Required("name"): str,
-        vol.Optional("params", default={}): dict,
+        probatio.Required("type"): f"{DOMAIN}/fragment",
+        probatio.Required("source"): str,
+        probatio.Required("name"): str,
+        probatio.Optional("params", default={}): dict,
     }
 )
 @callback
@@ -181,7 +181,7 @@ def websocket_fragment(
 
     try:
         config = fragment.render(msg["params"])
-    except vol.Invalid as err:
+    except probatio.Invalid as err:
         connection.send_error(
             msg["id"],
             websocket_api.ERR_INVALID_FORMAT,
@@ -197,7 +197,7 @@ def websocket_fragment(
     connection.send_result(msg["id"], config)
 
 
-@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/fragments"})
+@websocket_api.websocket_command({probatio.Required("type"): f"{DOMAIN}/fragments"})
 @callback
 def websocket_fragments(
     hass: HomeAssistant,
