@@ -29,6 +29,7 @@ from typing import Any
 import probatio
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import config_validation as cv
 from homeassistant.util.hass_dict import HassKey
 
 from .const import DOMAIN
@@ -69,33 +70,15 @@ class Fragment:
         return self.build(self.schema(dict(params or {}))).render()
 
     def describe(self) -> dict[str, Any]:
+        """The fragment and its params, in the field-list shape Home Assistant
+        sends the frontend for a config flow's form."""
         return {
             "name": self.name,
             "description": self.description,
-            "params": [
-                _describe_param(key, value) for key, value in self.schema.schema.items()
-            ],
+            "params": probatio.to_field_list(
+                self.schema, custom_serializer=cv.custom_serializer
+            ),
         }
-
-
-def _describe_param(key: Any, validator: Any) -> dict[str, Any]:
-    """Enough of a parameter to check a reference to it without running it.
-
-    Not `voluptuous_serialize`: Home Assistant no longer depends on it, and the
-    schemas here are flat maps of plain types, which this covers.
-    """
-    described: dict[str, Any] = {
-        "name": str(key),
-        "required": isinstance(key, probatio.Required),
-    }
-    if isinstance(validator, type):
-        described["type"] = validator.__name__
-    elif isinstance(validator, probatio.In):
-        described["type"] = "enum"
-        described["options"] = sorted(validator.container)
-    else:
-        described["type"] = type(validator).__name__
-    return described
 
 
 class FragmentRegistry:

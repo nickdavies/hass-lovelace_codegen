@@ -74,10 +74,12 @@ class TestFragment:
         assert KILLSWITCHES.describe() == {
             "name": "killswitches",
             "description": "Motion killswitch per light",
-            "params": [{"name": "light", "required": False, "type": "str"}],
+            "params": [
+                {"name": "light", "type": "string", "required": False, "optional": True}
+            ],
         }
 
-    def test_describe_lists_enum_options(self) -> None:
+    def test_describe_lists_select_options(self) -> None:
         fragment = Fragment(
             "x",
             lambda params: MarkdownCard(""),
@@ -86,7 +88,12 @@ class TestFragment:
             ),
         )
         assert fragment.describe()["params"] == [
-            {"name": "light", "required": True, "type": "enum", "options": ["a", "b"]}
+            {
+                "name": "light",
+                "type": "select",
+                "options": [("b", "b"), ("a", "a")],
+                "required": True,
+            }
         ]
 
 

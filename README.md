@@ -85,7 +85,9 @@ Two websocket commands serve them:
   Parameters the schema rejects, or a `FragmentError` from the builder, are an
   `invalid_format` error with the reason.
 - `lovelace_codegen/fragments` lists every fragment by source, with its
-  parameters, so a dashboard repo can check its references in CI.
+  parameters in the field-list shape Home Assistant uses for config flow forms
+  (`probatio.to_field_list`), so a dashboard repo can check its references in
+  CI.
 
 The schema defaults to accepting no parameters, so a misspelt one is an error
 rather than being ignored. Registering a source again replaces everything it
