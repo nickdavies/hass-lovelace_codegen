@@ -15,6 +15,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from .const import DOMAIN
+from .fragments import (
+    Fragment,
+    FragmentError,
+    Params,
+    async_setup_fragments,
+    register_fragments,
+)
+from .frontend import async_setup_frontend
 from .lovelace import (
     DBT,
     ENTITY,
@@ -37,27 +46,32 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.typing import ConfigType
 
-DOMAIN = "lovelace_codegen"
-
 __all__ = [
     "DBT",
+    "DOMAIN",
     "ENTITY",
     "ICON",
     "NAME",
     "Dashboard",
     "EntitiesCard",
+    "Fragment",
+    "FragmentError",
     "GeneratedDashboard",
     "HistoryGraphCard",
     "HorizontalStackCard",
     "ManualLovelaceYAML",
     "MarkdownCard",
+    "Params",
     "Renderable",
     "VerticalStackCard",
     "View",
     "divider",
+    "register_fragments",
 ]
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Nothing to set up: the dashboards belong to the components using this."""
+    """The fragment registry and its card: the dashboards belong to the components."""
+    async_setup_fragments(hass)
+    await async_setup_frontend(hass)
     return True
