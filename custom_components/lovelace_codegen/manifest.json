@@ -1,11 +1,11 @@
 {
   "domain": "lovelace_codegen",
   "name": "Lovelace codegen",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "integration_type": "helper",
   "documentation": "https://github.com/nickdavies/hass-lovelace_codegen",
   "codeowners": ["@nickdavies"],
-  "dependencies": ["lovelace"],
+  "dependencies": ["lovelace", "websocket_api"],
   "requirements": [],
   "iot_class": "calculated"
 }

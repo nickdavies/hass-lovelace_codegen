@@ -43,6 +43,54 @@ several components can share one copy of the code.
 The dashboard is rendered the first time it is opened and then cached until
 Home Assistant restarts.
 
+### Fragments: cards for other dashboards
+
+A generated dashboard is all or nothing. To put one of its cards on a
+hand-written dashboard too, register the function that builds it as a
+fragment:
+
+```python
+import voluptuous as vol
+
+from custom_components.lovelace_codegen import (
+    EntitiesCard, Fragment, FragmentError, Params, register_fragments,
+)
+
+
+def killswitches(params: Params) -> EntitiesCard:
+    if params["owner"] not in OWNERS:
+        raise FragmentError(f"no owner {params['owner']!r}")
+    ...
+
+
+# in async_setup, after loading config:
+register_fragments(hass, DOMAIN, [
+    Fragment(
+        "killswitches",
+        killswitches,
+        description="Motion killswitch per light",
+        schema=vol.Schema({vol.Required("owner"): str}),
+    ),
+])
+```
+
+Build the component's own `GeneratedDashboard` from the same functions, so the
+full page and the embedded pieces cannot disagree.
+
+Two websocket commands serve them:
+
+- `lovelace_codegen/fragment` with `source`, `name` and optional `params`
+  returns the rendered card config. Nothing is cached, so it is always current.
+  An unknown fragment is a `not_found` error that lists what the source offers.
+  Parameters the schema rejects, or a `FragmentError` from the builder, are an
+  `invalid_format` error with the reason.
+- `lovelace_codegen/fragments` lists every fragment by source, with its
+  parameters, so a dashboard repo can check its references in CI.
+
+The schema defaults to accepting no parameters, so a misspelt one is an error
+rather than being ignored. Registering a source again replaces everything it
+offered before.
+
 ### Versions
 
 Home Assistant loads exactly one copy of a custom component. Every component
