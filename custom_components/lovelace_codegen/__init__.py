@@ -23,6 +23,7 @@ from .fragments import (
     async_setup_fragments,
     register_fragments,
 )
+from .frontend import async_setup_frontend
 from .lovelace import (
     DBT,
     ENTITY,
@@ -70,6 +71,7 @@ __all__ = [
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Only the fragment registry: the dashboards belong to the components."""
+    """The fragment registry and its card: the dashboards belong to the components."""
     async_setup_fragments(hass)
+    await async_setup_frontend(hass)
     return True

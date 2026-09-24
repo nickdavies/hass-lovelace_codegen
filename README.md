@@ -91,6 +91,23 @@ The schema defaults to accepting no parameters, so a misspelt one is an error
 rather than being ignored. Registering a source again replaces everything it
 offered before.
 
+### The fragment card
+
+This component serves a card that shows a fragment, and adds it to every
+frontend page itself, so a dashboard needs no resource entry for it:
+
+```yaml
+type: custom:codegen-fragment
+source: light_motion_profiles
+fragment: light_config
+params:
+  light: dining
+```
+
+It fetches the card config over `lovelace_codegen/fragment` once, then hands it
+to Home Assistant's own card factory. A failed fetch shows the error in place of
+the card.
+
 ### Versions
 
 Home Assistant loads exactly one copy of a custom component. Every component
