@@ -26,6 +26,7 @@ from .fragments import (
 from .frontend import async_setup_frontend
 from .lovelace import (
     DBT,
+    ButtonCard,
     ENTITY,
     ICON,
     NAME,
@@ -51,6 +52,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "DBT",
+    "ButtonCard",
     "DOMAIN",
     "ENTITY",
     "ICON",

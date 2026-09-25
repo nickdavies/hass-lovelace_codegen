@@ -6,6 +6,7 @@ import pytest
 
 from custom_components.lovelace_codegen import (
     ENTITY,
+    ButtonCard,
     ICON,
     NAME,
     Dashboard,
@@ -115,6 +116,21 @@ class TestGridCard:
     def test_title_only_when_given(self) -> None:
         assert GridCard([], title="T").render()["title"] == "T"
         assert "title" not in GridCard([]).render()
+
+
+class TestButtonCard:
+    def test_needs_no_entity(self) -> None:
+        card = ButtonCard("Kitchen", "mdi:stove", tap_action=navigate("/d/kitchen"))
+        assert card.render() == {
+            "type": "button",
+            NAME: "Kitchen",
+            ICON: "mdi:stove",
+            "tap_action": {"action": "navigate", "navigation_path": "/d/kitchen"},
+        }
+
+    def test_entity_only_when_given(self) -> None:
+        assert ButtonCard("A", "mdi:x", entity="light.a").render()[ENTITY] == "light.a"
+        assert ENTITY not in ButtonCard("A", "mdi:x").render()
 
 
 class TestTileCard:
