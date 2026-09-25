@@ -161,6 +161,34 @@ class TileCard(Renderable):
         return config
 
 
+class ButtonCard(Renderable):
+    """A labelled icon to tap, with or without an entity behind it.
+
+    For something with no entity of its own to show, such as a room leading to
+    its own page, where a tile would need one.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        icon: str,
+        tap_action: Mapping[str, Any] | None = None,
+        entity: str | None = None,
+    ) -> None:
+        self.name = name
+        self.icon = icon
+        self.tap_action = tap_action
+        self.entity = entity
+
+    def render(self) -> DBT:
+        config: dict[str, Any] = {"type": "button", NAME: self.name, ICON: self.icon}
+        if self.entity is not None:
+            config[ENTITY] = self.entity
+        if self.tap_action is not None:
+            config["tap_action"] = dict(self.tap_action)
+        return config
+
+
 class EntitiesCard(Renderable):
     def __init__(
         self,
