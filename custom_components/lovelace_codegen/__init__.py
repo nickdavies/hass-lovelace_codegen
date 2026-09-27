@@ -23,7 +23,7 @@ from .fragments import (
     async_setup_fragments,
     register_fragments,
 )
-from .frontend import async_setup_frontend
+from .frontend import async_serve_card, async_setup_frontend
 from .lovelace import (
     DBT,
     ButtonCard,
@@ -72,6 +72,7 @@ __all__ = [
     "TileCard",
     "VerticalStackCard",
     "View",
+    "async_serve_card",
     "divider",
     "navigate",
     "register_fragments",

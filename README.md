@@ -110,6 +110,26 @@ It fetches the card config over `lovelace_codegen/fragment` once, then hands it
 to Home Assistant's own card factory. A failed fetch shows the error in place of
 the card.
 
+### A component's own cards
+
+The cards here model Home Assistant's own. A component that needs a custom card
+keeps it: the JS, and a `Renderable` subclass that renders its config. That
+nests in stacks, views and fragments like any card here. To load the JS, serve
+it from the component's setup:
+
+```python
+from pathlib import Path
+
+from custom_components.lovelace_codegen import async_serve_card
+
+await async_serve_card(hass, f"/{DOMAIN}/my-card.js", Path(__file__).parent / "my-card.js")
+```
+
+It is served with a content hash in the URL and added to every frontend page, so
+a dashboard needs no resource entry and always gets the version that matches
+the component. List `frontend` in the component's `after_dependencies`, or it is
+served but not loaded.
+
 ### Versions
 
 Home Assistant loads exactly one copy of a custom component. Every component
