@@ -75,7 +75,15 @@ class CodegenFragmentCard extends HTMLElement {
   }
 }
 
-if (!customElements.get(TAG)) {
+// Home Assistant's app replaces `window.customElements` with a scoped-registry
+// polyfill as it boots, and the polyfill cannot see anything defined on the
+// registry it replaced. This module loads alongside the app rather than after
+// it, so it registers only once the app's root element exists, which is
+// defined right after the swap, and on whichever registry is current then.
+customElements.whenDefined("home-assistant").then(() => {
+  if (customElements.get(TAG)) {
+    return;
+  }
   customElements.define(TAG, CodegenFragmentCard);
   window.customCards = window.customCards || [];
   window.customCards.push({
@@ -83,4 +91,4 @@ if (!customElements.get(TAG)) {
     name: "Generated fragment",
     description: "A card built by a component through lovelace_codegen.",
   });
-}
+});
