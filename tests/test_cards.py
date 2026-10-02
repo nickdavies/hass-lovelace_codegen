@@ -11,6 +11,7 @@ from custom_components.lovelace_codegen import (
     NAME,
     Dashboard,
     EntitiesCard,
+    FloorplanCard,
     GridCard,
     HistoryGraphCard,
     HorizontalStackCard,
@@ -19,6 +20,9 @@ from custom_components.lovelace_codegen import (
     VerticalStackCard,
     View,
     divider,
+    floorplan_style_set,
+    floorplan_tap,
+    floorplan_text_set,
     navigate,
 )
 
@@ -131,6 +135,60 @@ class TestButtonCard:
     def test_entity_only_when_given(self) -> None:
         assert ButtonCard("A", "mdi:x", entity="light.a").render()[ENTITY] == "light.a"
         assert ENTITY not in ButtonCard("A", "mdi:x").render()
+
+
+class TestFloorplanCard:
+    def test_a_plan_with_rules_and_startup_actions(self) -> None:
+        card = FloorplanCard(
+            "/local/plan.svg",
+            rules=[floorplan_tap("area-kitchen", navigate("/d/kitchen"))],
+            startup_actions=[
+                floorplan_style_set(["area-pantry"], "--area-fill: grey"),
+                floorplan_text_set("area-pantry-value", "empty"),
+            ],
+            title="Plan",
+        )
+        assert card.render() == {
+            "type": "custom:floorplan-card",
+            "full_height": False,
+            "title": "Plan",
+            "config": {
+                "image": {"location": "/local/plan.svg", "cache": False},
+                "rules": [
+                    {
+                        "element": "area-kitchen",
+                        "tap_action": {
+                            "action": "navigate",
+                            "navigation_path": "/d/kitchen",
+                        },
+                    }
+                ],
+                "startup_action": [
+                    {
+                        "action": "call-service",
+                        "service": "floorplan.style_set",
+                        "service_data": {
+                            "elements": ["area-pantry"],
+                            "style": "--area-fill: grey",
+                        },
+                    },
+                    {
+                        "action": "call-service",
+                        "service": "floorplan.text_set",
+                        "service_data": {
+                            "element": "area-pantry-value",
+                            "text": "empty",
+                        },
+                    },
+                ],
+            },
+        }
+
+    def test_no_startup_actions_or_title_unless_given(self) -> None:
+        card = FloorplanCard("/local/plan.svg").render()
+        assert "title" not in card
+        assert "startup_action" not in card["config"]
+        assert card["config"]["rules"] == []
 
 
 class TestTileCard:

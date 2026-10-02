@@ -261,6 +261,70 @@ class HistoryGraphCard(Renderable):
         return config
 
 
+def floorplan_style_set(elements: Sequence[str], style: str) -> dict[str, Any]:
+    """An action setting CSS on elements of a `FloorplanCard`'s plan, by id."""
+    return {
+        "action": "call-service",
+        "service": "floorplan.style_set",
+        "service_data": {"elements": list(elements), "style": style},
+    }
+
+
+def floorplan_text_set(element: str, text: str) -> dict[str, Any]:
+    """An action writing text into an element of a `FloorplanCard`'s plan."""
+    return {
+        "action": "call-service",
+        "service": "floorplan.text_set",
+        "service_data": {"element": element, "text": text},
+    }
+
+
+def floorplan_tap(element: str, tap_action: Mapping[str, Any]) -> dict[str, Any]:
+    """A rule making an element of a `FloorplanCard`'s plan, and everything in
+    it, tappable."""
+    return {"element": element, "tap_action": dict(tap_action)}
+
+
+class FloorplanCard(Renderable):
+    """An SVG plan that rules draw on, by the ids of its elements.
+
+    The custom card is ha-floorplan (github.com/ExperienceLovelace/ha-floorplan),
+    which has to be installed for this to show. `rules` are its rules, as built
+    by `floorplan_tap` or by hand; `startup_actions` run once, when the plan has
+    loaded, such as `floorplan_style_set` to colour elements that no entity's
+    state decides. The plan is fetched afresh on every load rather than cached,
+    so a regenerated one shows straight away.
+    """
+
+    def __init__(
+        self,
+        image: str,
+        rules: Sequence[Mapping[str, Any]] = (),
+        startup_actions: Sequence[Mapping[str, Any]] = (),
+        title: str | None = None,
+    ) -> None:
+        self.image = image
+        self.rules = rules
+        self.startup_actions = startup_actions
+        self.title = title
+
+    def render(self) -> DBT:
+        config: dict[str, Any] = {
+            "image": {"location": self.image, "cache": False},
+            "rules": [dict(rule) for rule in self.rules],
+        }
+        if self.startup_actions:
+            config["startup_action"] = [dict(a) for a in self.startup_actions]
+        card: dict[str, Any] = {
+            "type": "custom:floorplan-card",
+            "full_height": False,
+            "config": config,
+        }
+        if self.title is not None:
+            card["title"] = self.title
+        return card
+
+
 class Dashboard(Renderable):
     def __init__(self, views: Sequence[View]) -> None:
         self.views = views

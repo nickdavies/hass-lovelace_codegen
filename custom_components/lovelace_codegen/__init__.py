@@ -32,6 +32,7 @@ from .lovelace import (
     NAME,
     Dashboard,
     EntitiesCard,
+    FloorplanCard,
     GeneratedDashboard,
     GridCard,
     HistoryGraphCard,
@@ -43,6 +44,9 @@ from .lovelace import (
     VerticalStackCard,
     View,
     divider,
+    floorplan_style_set,
+    floorplan_tap,
+    floorplan_text_set,
     navigate,
 )
 
@@ -59,6 +63,7 @@ __all__ = [
     "NAME",
     "Dashboard",
     "EntitiesCard",
+    "FloorplanCard",
     "Fragment",
     "FragmentError",
     "GeneratedDashboard",
@@ -74,6 +79,9 @@ __all__ = [
     "View",
     "async_serve_card",
     "divider",
+    "floorplan_style_set",
+    "floorplan_tap",
+    "floorplan_text_set",
     "navigate",
     "register_fragments",
 ]
