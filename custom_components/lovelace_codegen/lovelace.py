@@ -279,6 +279,22 @@ def floorplan_text_set(element: str, text: str) -> dict[str, Any]:
     }
 
 
+def floorplan_on_state(
+    entities: Sequence[str], actions: Sequence[Mapping[str, Any]]
+) -> dict[str, Any]:
+    """A rule running actions whenever any of entities changes state, and once
+    the plan loads.
+
+    The actions' service data can be ha-floorplan templates, `${...}`, which
+    read the entities' states as `entities['<entity id>']` and the card's
+    `functions` as `functions`.
+    """
+    return {
+        "entities": list(entities),
+        "state_action": [dict(action) for action in actions],
+    }
+
+
 def floorplan_tap(element: str, tap_action: Mapping[str, Any]) -> dict[str, Any]:
     """A rule making an element of a `FloorplanCard`'s plan, and everything in
     it, tappable."""
@@ -290,10 +306,12 @@ class FloorplanCard(Renderable):
 
     The custom card is ha-floorplan (github.com/ExperienceLovelace/ha-floorplan),
     which has to be installed for this to show. `rules` are its rules, as built
-    by `floorplan_tap` or by hand; `startup_actions` run once, when the plan has
-    loaded, such as `floorplan_style_set` to colour elements that no entity's
-    state decides. The plan is fetched afresh on every load rather than cached,
-    so a regenerated one shows straight away.
+    by `floorplan_tap`, `floorplan_on_state` or by hand; `startup_actions` run
+    once, when the plan has loaded, such as `floorplan_style_set` to colour
+    elements that no entity's state decides. `functions` is JavaScript, the body
+    of a function returning an object of helpers for the rules' templates. The
+    plan is fetched afresh on every load rather than cached, so a regenerated one
+    shows straight away.
     """
 
     def __init__(
@@ -302,17 +320,22 @@ class FloorplanCard(Renderable):
         rules: Sequence[Mapping[str, Any]] = (),
         startup_actions: Sequence[Mapping[str, Any]] = (),
         title: str | None = None,
+        functions: str | None = None,
     ) -> None:
         self.image = image
         self.rules = rules
         self.startup_actions = startup_actions
         self.title = title
+        self.functions = functions
 
     def render(self) -> DBT:
         config: dict[str, Any] = {
             "image": {"location": self.image, "cache": False},
             "rules": [dict(rule) for rule in self.rules],
         }
+        if self.functions is not None:
+            # ha-floorplan runs a string starting `>` as code.
+            config["functions"] = f">\n{self.functions}"
         if self.startup_actions:
             config["startup_action"] = [dict(a) for a in self.startup_actions]
         card: dict[str, Any] = {

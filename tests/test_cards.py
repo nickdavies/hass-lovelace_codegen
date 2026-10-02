@@ -20,6 +20,7 @@ from custom_components.lovelace_codegen import (
     VerticalStackCard,
     View,
     divider,
+    floorplan_on_state,
     floorplan_style_set,
     floorplan_tap,
     floorplan_text_set,
@@ -188,7 +189,40 @@ class TestFloorplanCard:
         card = FloorplanCard("/local/plan.svg").render()
         assert "title" not in card
         assert "startup_action" not in card["config"]
+        assert "functions" not in card["config"]
         assert card["config"]["rules"] == []
+
+    def test_state_rules_template_with_the_cards_functions(self) -> None:
+        card = FloorplanCard(
+            "/local/plan.svg",
+            rules=[
+                floorplan_on_state(
+                    ["light.a", "light.b"],
+                    [
+                        floorplan_style_set(
+                            ["area-a"], "${functions.fill(entities['light.a'])}"
+                        )
+                    ],
+                )
+            ],
+            functions="return { fill: (s) => '' };",
+        ).render()
+        assert card["config"]["functions"] == ">\nreturn { fill: (s) => '' };"
+        assert card["config"]["rules"] == [
+            {
+                "entities": ["light.a", "light.b"],
+                "state_action": [
+                    {
+                        "action": "call-service",
+                        "service": "floorplan.style_set",
+                        "service_data": {
+                            "elements": ["area-a"],
+                            "style": "${functions.fill(entities['light.a'])}",
+                        },
+                    }
+                ],
+            }
+        ]
 
 
 class TestTileCard:
