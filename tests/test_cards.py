@@ -14,12 +14,16 @@ from custom_components.lovelace_codegen import (
     GridCard,
     HistoryGraphCard,
     HorizontalStackCard,
+    IconElement,
+    ImageElement,
     MarkdownCard,
+    PictureElementsCard,
     TileCard,
     VerticalStackCard,
     View,
     divider,
     navigate,
+    tap_area,
 )
 
 
@@ -131,6 +135,55 @@ class TestButtonCard:
     def test_entity_only_when_given(self) -> None:
         assert ButtonCard("A", "mdi:x", entity="light.a").render()[ENTITY] == "light.a"
         assert ENTITY not in ButtonCard("A", "mdi:x").render()
+
+
+class TestPictureElementsCard:
+    def test_elements_are_placed_by_their_centre_in_percent(self) -> None:
+        card = PictureElementsCard(
+            "/local/plan.svg",
+            [
+                IconElement(
+                    "mdi:stove",
+                    12.3456,
+                    50,
+                    tap_action=navigate("/d/kitchen"),
+                    style={"color": "red"},
+                )
+            ],
+            title="Plan",
+        )
+        assert card.render() == {
+            "type": "picture-elements",
+            "image": "/local/plan.svg",
+            "elements": [
+                {
+                    "type": "icon",
+                    ICON: "mdi:stove",
+                    "tap_action": {
+                        "action": "navigate",
+                        "navigation_path": "/d/kitchen",
+                    },
+                    "style": {"left": "12.35%", "top": "50%", "color": "red"},
+                }
+            ],
+            "title": "Plan",
+        }
+
+    def test_image_element_has_a_width(self) -> None:
+        assert ImageElement("/local/a.png", 10, 20, 30).render() == {
+            "type": "image",
+            "image": "/local/a.png",
+            "style": {"width": "30%", "left": "10%", "top": "20%"},
+        }
+
+    def test_tap_area_is_as_tall_as_asked_on_any_image(self) -> None:
+        """10% of a 2:1 image's width is as long as 20% of its height, so a
+        10% by 20% area is square."""
+        area = tap_area(50, 50, 10, 20, 2.0, navigate("/d/a")).render()
+        assert area["aspect_ratio"] == "1.0000:1"
+        assert area["style"]["width"] == "10%"
+        assert area["image"].startswith("data:image/svg+xml,")
+        assert area["tap_action"] == {"action": "navigate", "navigation_path": "/d/a"}
 
 
 class TestTileCard:

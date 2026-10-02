@@ -36,14 +36,19 @@ from .lovelace import (
     GridCard,
     HistoryGraphCard,
     HorizontalStackCard,
+    IconElement,
+    ImageElement,
     ManualLovelaceYAML,
     MarkdownCard,
+    PictureElement,
+    PictureElementsCard,
     Renderable,
     TileCard,
     VerticalStackCard,
     View,
     divider,
     navigate,
+    tap_area,
 )
 
 if TYPE_CHECKING:
@@ -65,9 +70,13 @@ __all__ = [
     "GridCard",
     "HistoryGraphCard",
     "HorizontalStackCard",
+    "IconElement",
+    "ImageElement",
     "ManualLovelaceYAML",
     "MarkdownCard",
     "Params",
+    "PictureElement",
+    "PictureElementsCard",
     "Renderable",
     "TileCard",
     "VerticalStackCard",
@@ -76,6 +85,7 @@ __all__ = [
     "divider",
     "navigate",
     "register_fragments",
+    "tap_area",
 ]
 
 

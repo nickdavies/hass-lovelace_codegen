@@ -10,6 +10,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 from typing import Any
+from urllib.parse import quote
 
 from homeassistant.components.lovelace import _register_panel
 from homeassistant.components.lovelace.const import MODE_YAML
@@ -255,6 +256,144 @@ class HistoryGraphCard(Renderable):
             "type": "history-graph",
             "hours_to_show": self.hours_to_show,
             "entities": self.entities,
+        }
+        if self.title is not None:
+            config["title"] = self.title
+        return config
+
+
+def _percent(value: float) -> str:
+    return f"{round(value, 2):g}%"
+
+
+class PictureElement(Renderable):
+    """One thing placed over a `PictureElementsCard`'s image.
+
+    `left` and `top` place the element's centre, as percentages of the image's
+    width and height, so it stays put however large the image is drawn. `style`
+    adds CSS to the element, over the position.
+    """
+
+    def __init__(
+        self,
+        left: float,
+        top: float,
+        tap_action: Mapping[str, Any] | None = None,
+        style: Mapping[str, str] | None = None,
+    ) -> None:
+        self.left = left
+        self.top = top
+        self.tap_action = tap_action
+        self.style = style
+
+    @abstractmethod
+    def _config(self) -> dict[str, Any]:
+        pass
+
+    def render(self) -> DBT:
+        config = self._config()
+        if self.tap_action is not None:
+            config["tap_action"] = dict(self.tap_action)
+        config["style"] = {
+            "left": _percent(self.left),
+            "top": _percent(self.top),
+            **(self.style or {}),
+        }
+        return config
+
+
+class IconElement(PictureElement):
+    """An icon on the image. It takes taps on and just around the icon."""
+
+    def __init__(self, icon: str, left: float, top: float, **kwargs: Any) -> None:
+        super().__init__(left, top, **kwargs)
+        self.icon = icon
+
+    def _config(self) -> dict[str, Any]:
+        return {"type": "icon", ICON: self.icon}
+
+
+class ImageElement(PictureElement):
+    """A picture on the image, `width` percent of the image's width across.
+
+    Its height follows from `aspect_ratio` (such as "16:9") when given, and
+    from the picture's own proportions otherwise. The whole picture takes a tap.
+    """
+
+    def __init__(
+        self,
+        image: str,
+        left: float,
+        top: float,
+        width: float,
+        aspect_ratio: str | None = None,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(left, top, **kwargs)
+        self.image = image
+        self.width = width
+        self.aspect_ratio = aspect_ratio
+
+    def _config(self) -> dict[str, Any]:
+        config: dict[str, Any] = {"type": "image", "image": self.image}
+        if self.aspect_ratio is not None:
+            config["aspect_ratio"] = self.aspect_ratio
+        return config
+
+    def render(self) -> DBT:
+        config = super().render()
+        config["style"] = {"width": _percent(self.width), **config["style"]}
+        return config
+
+
+# A picture with nothing in it.
+TRANSPARENT = "data:image/svg+xml," + quote(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'/>"
+)
+
+
+def tap_area(
+    left: float,
+    top: float,
+    width: float,
+    height: float,
+    aspect: float,
+    tap_action: Mapping[str, Any],
+) -> ImageElement:
+    """An invisible rectangle to tap, centred at `left`, `top`, and `width` by
+    `height` percent of the image. `aspect` is the image's width over its height.
+
+    An icon takes taps only near itself, where a picture takes them anywhere on
+    it, so a larger target is a transparent picture of the rectangle's shape.
+    """
+    return ImageElement(
+        TRANSPARENT,
+        left,
+        top,
+        width,
+        aspect_ratio=f"{width * aspect / height:.4f}:1",
+        tap_action=tap_action,
+    )
+
+
+class PictureElementsCard(Renderable):
+    """An image with `elements` placed over it."""
+
+    def __init__(
+        self,
+        image: str,
+        elements: Sequence[Renderable],
+        title: str | None = None,
+    ) -> None:
+        self.image = image
+        self.elements = elements
+        self.title = title
+
+    def render(self) -> DBT:
+        config: dict[str, Any] = {
+            "type": "picture-elements",
+            "image": self.image,
+            "elements": [element.render() for element in self.elements],
         }
         if self.title is not None:
             config["title"] = self.title
