@@ -110,6 +110,39 @@ It fetches the card config over `lovelace_codegen/fragment` once, then hands it
 to Home Assistant's own card factory. A failed fetch shows the error in place of
 the card.
 
+### The summary row card
+
+Also served and added to every page, for hand-written dashboards: one row
+summing up a part of the house, with a count bubble on its icon, its name, and
+a few labelled values beside each other, the whole row one tap.
+
+```yaml
+type: custom:codegen-summary-row
+name: Plants
+icon: mdi:sprout
+badge: sensor.plant_outstanding_nick
+tap_action:
+  action: navigate
+  navigation_path: /plants/nick
+items:
+  - entity: sensor.plant_outstanding_nick
+    attribute: plants
+    name: Plants
+  - entity: sensor.plant_outstanding_nick
+    attribute: needs_water
+    name: Need water
+    alert: true
+```
+
+The bubble is the `badge` entity's state, shown when above zero. Each item is
+its entity's state, or the `attribute` named, with the entity's icon unless the
+item gives one. A template sensor can dress its state with two attributes:
+`tone` (`idle`, `active`, `attention` or `alert`) colours the item's icon, and
+`since`, a timestamp, puts the time since it after the value, kept current on
+screen. `alert: true` takes the alert tone for any number above zero. The full
+reference is at the top of `frontend/summary-row-card.js`. The tap goes through
+Home Assistant's action handler, so a subview it opens has a working back arrow.
+
 ### Floor plan taps
 
 `floorplan_tap` runs its action through Home Assistant's own action handler

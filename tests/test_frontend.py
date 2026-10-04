@@ -12,6 +12,8 @@ from custom_components.lovelace_codegen.frontend import (
     CARD,
     FLOORPLAN_ACTIONS,
     FLOORPLAN_ACTIONS_URL,
+    SUMMARY_ROW_CARD,
+    SUMMARY_ROW_URL,
     URL,
 )
 
@@ -22,6 +24,16 @@ async def test_the_card_is_served(integration: HomeAssistant, hass_client: Any) 
 
     assert response.status == 200
     assert await response.text() == CARD.read_text()
+
+
+async def test_the_summary_row_card_is_served(
+    integration: HomeAssistant, hass_client: Any
+) -> None:
+    client = await hass_client()
+    response = await client.get(SUMMARY_ROW_URL)
+
+    assert response.status == 200
+    assert await response.text() == SUMMARY_ROW_CARD.read_text()
 
 
 async def test_the_floorplan_actions_are_served(
