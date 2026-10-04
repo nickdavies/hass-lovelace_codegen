@@ -154,13 +154,11 @@ class CodegenSummaryRowCard extends HTMLElement {
     }
     const attrs = stateObj.attributes;
     const raw = item.attribute ? attrs[item.attribute] : stateObj.state;
-    let value = item.attribute
+    const value = item.attribute
       ? this._hass.formatEntityAttributeValue(stateObj, item.attribute)
       : this._hass.formatEntityState(stateObj);
+    // Its own span, so a long value is cut short before the time is.
     const ago = attrs.since && elapsed(attrs.since);
-    if (ago) {
-      value = `${value} · ${ago}`;
-    }
     const tone = item.alert && parseFloat(raw) > 0 ? "alert" : attrs.tone;
     const icon = item.icon ?? attrs.icon;
     return `
@@ -169,7 +167,9 @@ class CodegenSummaryRowCard extends HTMLElement {
           ${icon ? `<ha-icon icon="${escape(icon)}" style="color: ${TONES[tone] ?? TONES.idle}"></ha-icon>` : ""}
           ${escape(item.name ?? attrs.friendly_name ?? item.entity)}
         </span>
-        <span class="value">${escape(value)}</span>
+        <span class="value"><span class="text">${escape(value)}</span>${
+          ago ? `<span class="ago">&nbsp;· ${escape(ago)}</span>` : ""
+        }</span>
       </div>`;
   }
 
@@ -234,12 +234,18 @@ class CodegenSummaryRowCard extends HTMLElement {
           color: var(--secondary-text-color);
         }
         .label ha-icon { --mdc-icon-size: 14px; flex: none; }
-        .value, .label {
+        .label, .text {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-        .value { font-size: 14px; font-variant-numeric: tabular-nums; }
+        .value {
+          display: flex;
+          min-width: 0;
+          font-size: 14px;
+          font-variant-numeric: tabular-nums;
+        }
+        .ago { flex: none; white-space: nowrap; }
         .missing { color: var(--error-color); }
       </style>
       <ha-card class="${tappable ? "tappable" : ""}"
