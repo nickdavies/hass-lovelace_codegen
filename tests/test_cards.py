@@ -158,9 +158,14 @@ class TestFloorplanCard:
                 "rules": [
                     {
                         "element": "area-kitchen",
+                        # Through Home Assistant's action handler, by way of
+                        # frontend/floorplan-actions.js.
                         "tap_action": {
-                            "action": "navigate",
-                            "navigation_path": "/d/kitchen",
+                            "action": "fire-dom-event",
+                            "codegen_action": {
+                                "action": "navigate",
+                                "navigation_path": "/d/kitchen",
+                            },
                         },
                     }
                 ],

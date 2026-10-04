@@ -110,6 +110,15 @@ It fetches the card config over `lovelace_codegen/fragment` once, then hands it
 to Home Assistant's own card factory. A failed fetch shows the error in place of
 the card.
 
+### Floor plan taps
+
+`floorplan_tap` runs its action through Home Assistant's own action handler
+rather than ha-floorplan's, the way a built-in card's tap is run. ha-floorplan
+navigates without the history state a subview's back arrow reads, so a page
+opened from a plan would go "back" to its dashboard's first view instead of to
+the plan. The tap is fired as ha-floorplan's `fire-dom-event`, and a script
+this component adds to every page hands it to Home Assistant.
+
 ### A component's own cards
 
 The cards here model Home Assistant's own. A component that needs a custom card
