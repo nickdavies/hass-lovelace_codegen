@@ -5,7 +5,9 @@ serves the card's JS with `async_serve_card`. It is served and added to every
 page by the component itself, so a dashboard using it needs no resource entry,
 and the card is always the version that matches the component rendering it.
 
-This component serves its own `custom:codegen-fragment` card the same way.
+This component serves its own `custom:codegen-fragment` card the same way, and
+the script that runs `FloorplanCard` taps through Home Assistant's action
+handler.
 """
 
 from __future__ import annotations
@@ -24,6 +26,8 @@ _LOGGER = logging.getLogger(__name__)
 
 CARD = Path(__file__).parent / "fragment-card.js"
 URL = f"/{DOMAIN}/fragment-card.js"
+FLOORPLAN_ACTIONS = Path(__file__).parent / "floorplan-actions.js"
+FLOORPLAN_ACTIONS_URL = f"/{DOMAIN}/floorplan-actions.js"
 
 
 async def async_serve_card(hass: HomeAssistant, url: str, path: Path) -> None:
@@ -52,3 +56,4 @@ async def async_serve_card(hass: HomeAssistant, url: str, path: Path) -> None:
 
 async def async_setup_frontend(hass: HomeAssistant) -> None:
     await async_serve_card(hass, URL, CARD)
+    await async_serve_card(hass, FLOORPLAN_ACTIONS_URL, FLOORPLAN_ACTIONS)

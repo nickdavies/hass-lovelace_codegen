@@ -297,8 +297,19 @@ def floorplan_on_state(
 
 def floorplan_tap(element: str, tap_action: Mapping[str, Any]) -> dict[str, Any]:
     """A rule making an element of a `FloorplanCard`'s plan, and everything in
-    it, tappable."""
-    return {"element": element, "tap_action": dict(tap_action)}
+    it, tappable.
+
+    `tap_action` is any card action, such as `navigate`'s. It is run by Home
+    Assistant's own action handler, as a built-in card's would be, rather than
+    by ha-floorplan: ha-floorplan's `navigate` leaves out the history state a
+    subview's back arrow needs, so the arrow would go to the dashboard's first
+    view instead of back. ha-floorplan fires it as a `fire-dom-event`, and this
+    component's frontend hands it on (frontend/floorplan-actions.js).
+    """
+    return {
+        "element": element,
+        "tap_action": {"action": "fire-dom-event", "codegen_action": dict(tap_action)},
+    }
 
 
 class FloorplanCard(Renderable):
