@@ -95,8 +95,8 @@ offered before.
 
 ### The fragment card
 
-This component serves a card that shows a fragment, and adds it to every
-frontend page itself, so a dashboard needs no resource entry for it:
+This component serves a card that shows a fragment, and lists it as a dashboard
+resource itself, so a dashboard needs no resource entry for it:
 
 ```yaml
 type: custom:codegen-fragment
@@ -117,7 +117,7 @@ rather than ha-floorplan's, the way a built-in card's tap is run. ha-floorplan
 navigates without the history state a subview's back arrow reads, so a page
 opened from a plan would go "back" to its dashboard's first view instead of to
 the plan. The tap is fired as ha-floorplan's `fire-dom-event`, and a script
-this component adds to every page hands it to Home Assistant.
+this component lists as a dashboard resource hands it to Home Assistant.
 
 ### A component's own cards
 
@@ -134,10 +134,18 @@ from custom_components.lovelace_codegen import async_serve_card
 await async_serve_card(hass, f"/{DOMAIN}/my-card.js", Path(__file__).parent / "my-card.js")
 ```
 
-It is served with a content hash in the URL and added to every frontend page, so
-a dashboard needs no resource entry and always gets the version that matches
-the component. List `frontend` in the component's `after_dependencies`, or it is
-served but not loaded.
+It is served, and listed among the dashboard resources with a content hash in
+its URL, so a dashboard needs no resource entry and always gets the version that
+matches the component.
+
+The list is Home Assistant's own: this component answers `lovelace/resources`,
+the websocket command the frontend fetches resources with, with Home Assistant's
+resources and then the served cards. In YAML or storage resource mode alike, and
+"Reload resources" keeps them. A card is not added to the frontend page's own
+list of modules (`add_extra_js_url`) instead: that list is in the HTML page,
+which the service worker and the companion app cache, so a phone reopening on a
+cached page loads the cards that page listed, at the versions it listed. The
+resource list is fetched afresh every time the app starts.
 
 ### Versions
 

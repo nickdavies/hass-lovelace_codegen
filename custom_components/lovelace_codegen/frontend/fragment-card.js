@@ -9,8 +9,9 @@
 //
 // It asks Home Assistant for the card config over the websocket and hands it to
 // Home Assistant's own card factory, so the result is exactly the card the
-// component would have put on its own dashboard. Served and loaded by the
-// lovelace_codegen component, so no dashboard resource entry is needed.
+// component would have put on its own dashboard. Served by the lovelace_codegen
+// component, which lists it as a dashboard resource itself, so no resource entry
+// is needed.
 
 const TAG = "codegen-fragment";
 
@@ -77,9 +78,12 @@ class CodegenFragmentCard extends HTMLElement {
 
 // Home Assistant's app replaces `window.customElements` with a scoped-registry
 // polyfill as it boots, and the polyfill cannot see anything defined on the
-// registry it replaced. This module loads alongside the app rather than after
-// it, so it registers only once the app's root element exists, which is
-// defined right after the swap, and on whichever registry is current then.
+// registry it replaced. As a dashboard resource this loads after the app has
+// booted, but a page cached from when it was an extra module loads it alongside
+// the app too, so it registers only once the app's root element exists, which
+// is defined right after the swap, and on whichever registry is current then.
+// Loaded both ways, under two URLs, it is two modules, and only the first
+// defines the card.
 customElements.whenDefined("home-assistant").then(() => {
   if (customElements.get(TAG)) {
     return;
