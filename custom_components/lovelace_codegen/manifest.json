@@ -6,7 +6,6 @@
   "documentation": "https://github.com/nickdavies/hass-lovelace_codegen",
   "codeowners": ["@nickdavies"],
   "dependencies": ["http", "lovelace", "websocket_api"],
-  "after_dependencies": ["frontend"],
   "requirements": [],
   "iot_class": "calculated"
 }
