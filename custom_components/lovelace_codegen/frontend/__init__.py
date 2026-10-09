@@ -27,7 +27,9 @@ from typing import Any
 
 from homeassistant.components import websocket_api
 from homeassistant.components.http import StaticPathConfig
-from homeassistant.components.lovelace.const import LOVELACE_DATA
+from homeassistant.components.lovelace.websocket import (
+    websocket_lovelace_resources_impl,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.util.hass_dict import HassKey
 
@@ -72,6 +74,22 @@ def served_resources(hass: HomeAssistant) -> list[dict[str, str]]:
     ]
 
 
+class _WithServedCards:
+    """A websocket connection whose result has the served cards added to it."""
+
+    def __init__(
+        self, hass: HomeAssistant, connection: websocket_api.ActiveConnection
+    ) -> None:
+        self._hass = hass
+        self._connection = connection
+
+    def send_result(self, msg_id: int, result: Any = None) -> None:
+        self._connection.send_result(msg_id, [*result, *served_resources(self._hass)])
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._connection, name)
+
+
 @websocket_api.async_response
 async def websocket_resources(
     hass: HomeAssistant,
@@ -80,24 +98,14 @@ async def websocket_resources(
 ) -> None:
     """Home Assistant's dashboard resources, then the cards served here.
 
-    Answers in place of Home Assistant's own handler, which this replaces: it
-    lists the same resources, from the collection Home Assistant keeps whichever
-    resource mode it is in, loading it first as that handler does. The
-    collection is looked up on every call because reloading YAML resources
-    replaces it, and the served cards are added on every call so that reload
-    cannot drop them.
+    Answers in place of Home Assistant's own handler, by running the function
+    behind it, which loads the resources in either resource mode and sends
+    them, and adding the served cards to what it sends. Home Assistant decides
+    what its resources are, and the cards are added on every call, so reloading
+    YAML resources, which replaces Home Assistant's list, cannot drop them.
     """
-    if hass.config.safe_mode:
-        connection.send_result(msg["id"], [])
-        return
-
-    resources = hass.data[LOVELACE_DATA].resources
-    if not resources.loaded:
-        await resources.async_load()
-        resources.loaded = True
-
-    connection.send_result(
-        msg["id"], [*resources.async_items(), *served_resources(hass)]
+    await websocket_lovelace_resources_impl(
+        hass, _WithServedCards(hass, connection), msg
     )
 
 
