@@ -75,6 +75,42 @@ class CodegenFragmentCard extends HTMLElement {
   }
 }
 
+// Gives a FloorplanCard tap's navigation the history state Home Assistant's
+// own navigation records, so a subview opened from a floor plan goes back to it.
+//
+// ha-floorplan navigates by pushing the new URL onto history without that
+// state. A subview's back arrow reads `from` there to go back in history, so
+// without it the arrow fell back to the dashboard's first view: a room opened
+// from a plan on one dashboard went "back" to another. `floorplan_tap` follows
+// its `navigate` with a `fire-dom-event`, which ha-floorplan fires as an
+// `ll-custom` event right after navigating, and this then records where the
+// tap was as the new entry's `from`.
+//
+// ha-floorplan still does the navigating, so a tap works even on a page that
+// has not loaded this file: an app shell cached from before a change lists the
+// modules it had then, at the versions it had then. Only the back arrow
+// depends on this.
+let pathAtTap;
+window.addEventListener(
+  "click",
+  () => {
+    pathAtTap = location.pathname;
+  },
+  { capture: true },
+);
+window.addEventListener("ll-custom", (event) => {
+  if (!event.detail?.codegen_navigated) {
+    return;
+  }
+  event.stopPropagation();
+  const from = pathAtTap;
+  pathAtTap = undefined;
+  if (from === undefined || from === location.pathname || history.state?.from !== undefined) {
+    return;
+  }
+  history.replaceState({ ...history.state, from }, "");
+});
+
 // Home Assistant's app replaces `window.customElements` with a scoped-registry
 // polyfill as it boots, and the polyfill cannot see anything defined on the
 // registry it replaced. This module loads alongside the app rather than after

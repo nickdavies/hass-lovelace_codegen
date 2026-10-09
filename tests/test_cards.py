@@ -158,15 +158,12 @@ class TestFloorplanCard:
                 "rules": [
                     {
                         "element": "area-kitchen",
-                        # Through Home Assistant's action handler, by way of
-                        # frontend/floorplan-actions.js.
-                        "tap_action": {
-                            "action": "fire-dom-event",
-                            "codegen_action": {
-                                "action": "navigate",
-                                "navigation_path": "/d/kitchen",
-                            },
-                        },
+                        # ha-floorplan navigates, then frontend/fragment-card.js
+                        # adds the history state the back arrow reads.
+                        "tap_action": [
+                            {"action": "navigate", "navigation_path": "/d/kitchen"},
+                            {"action": "fire-dom-event", "codegen_navigated": True},
+                        ],
                     }
                 ],
                 "startup_action": [
@@ -189,6 +186,18 @@ class TestFloorplanCard:
                 ],
             },
         }
+
+    def test_a_tap_other_than_navigate_is_left_to_ha_floorplan(self) -> None:
+        action = {"action": "more-info", "entity_id": "light.kitchen"}
+        assert floorplan_tap("area-kitchen", action) == {
+            "element": "area-kitchen",
+            "tap_action": action,
+        }
+
+    def test_a_replacing_navigate_keeps_its_entrys_way_back(self) -> None:
+        """A replaced entry keeps the `from` it had, so there is none to add."""
+        action = {**navigate("/d/kitchen"), "navigation_replace": True}
+        assert floorplan_tap("area-kitchen", action)["tap_action"] == action
 
     def test_no_startup_actions_or_title_unless_given(self) -> None:
         card = FloorplanCard("/local/plan.svg").render()

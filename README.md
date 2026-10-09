@@ -112,12 +112,15 @@ the card.
 
 ### Floor plan taps
 
-`floorplan_tap` runs its action through Home Assistant's own action handler
-rather than ha-floorplan's, the way a built-in card's tap is run. ha-floorplan
-navigates without the history state a subview's back arrow reads, so a page
-opened from a plan would go "back" to its dashboard's first view instead of to
-the plan. The tap is fired as ha-floorplan's `fire-dom-event`, and a script
-this component adds to every page hands it to Home Assistant.
+ha-floorplan runs a `floorplan_tap`'s action itself, but its `navigate` leaves
+out the history state a subview's back arrow reads, so a page opened from a plan
+would go "back" to its dashboard's first view instead of to the plan. A
+`navigate` is therefore followed by a `fire-dom-event`, and the fragment card's
+script, which this component adds to every page, then adds that state.
+
+The tap never depends on that script: an app shell the companion app cached
+before a change loads the scripts it listed then, so on such a page the tap
+still navigates and only the back arrow is off.
 
 ### A component's own cards
 
