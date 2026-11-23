@@ -163,7 +163,7 @@ Needs Python 3.14.2 or later: the tests run against the Home Assistant release
 homelab deploys, pinned in `.github/workflows/ci.yml`.
 
 ```sh
-pip install pytest pytest-homeassistant-custom-component==0.13.365 ruff==0.16.8
+pip install pytest pytest-homeassistant==2026.11.2 ruff==0.16.8
 python -m pytest tests/ -c tests/pytest.ini
 ruff check custom_components/ tests/ && ruff format --check custom_components/ tests/
 ```
