@@ -127,7 +127,7 @@ async def test_reloading_yaml_resources_keeps_the_cards(
 ) -> None:
     """Reloading replaces Home Assistant's resource list with the YAML's."""
     with patch(
-        "homeassistant.components.lovelace.async_hass_config_yaml",
+        "homeassistant.components.lovelace.services.async_hass_config_yaml",
         return_value=_lovelace_yaml("/local/b.js?v=2"),
     ):
         await yaml_resources.services.async_call(
